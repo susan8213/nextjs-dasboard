@@ -4,8 +4,27 @@ import { z } from 'zod';
 import postgres from 'postgres';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { signIn } from '@/auth';
+import { CredentialsSignin } from 'next-auth';
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+
+
+export async function authenticate(
+    prevState: string | undefined,
+    formData: FormData,
+  ) {
+    try {
+      await signIn('credentials', formData);
+    } catch (error) {
+        console.error('Error during sign-in:', typeof error);
+        console.error(error);
+      if (error instanceof CredentialsSignin) {
+        return "Invalid credentials. Please try again.";
+      }
+      throw error;
+    }
+}
 
 const InvoiceFormSchema = z.object({
     id: z.string(),
