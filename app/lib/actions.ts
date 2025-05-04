@@ -27,10 +27,14 @@ export async function createInvoice(formData: FormData) {
     const amountInCents = invoiceData.amount * 100; // Convert to cents
     const date = new Date().toISOString().split('T')[0];
 
-    await sql`
-        INSERT INTO invoices (customer_id, amount, status, date)
-        VALUES (${invoiceData.customerId}, ${amountInCents}, ${invoiceData.status}, ${date})
-    `;
+    try {
+        await sql`
+            INSERT INTO invoices (customer_id, amount, status, date)
+            VALUES (${invoiceData.customerId}, ${amountInCents}, ${invoiceData.status}, ${date})
+        `;
+    } catch (error) {
+        throw new Error(`Failed to create invoice. (${error})`);
+    }
 
     // Revalidate the path to update the cache
     revalidatePath('/dashboard/invoices');
@@ -47,13 +51,17 @@ export async function updateInvoice(id: string, formData: FormData) {
 
     const amountInCents = invoiceData.amount * 100; // Convert to cents
 
-    await sql`
-        UPDATE invoices
-        SET customer_id = ${invoiceData.customerId},
-            amount = ${amountInCents},
-            status = ${invoiceData.status}
-        WHERE id = ${id}
-    `;
+    try {
+        await sql`
+            UPDATE invoices
+            SET customer_id = ${invoiceData.customerId},
+                amount = ${amountInCents},
+                status = ${invoiceData.status}
+            WHERE id = ${id}
+        `;
+    } catch (error) {
+        throw new Error(`Failed to update invoice. (${error})`);
+    }
 
     // Revalidate the path to update the cache
     revalidatePath('/dashboard/invoices');
@@ -61,10 +69,14 @@ export async function updateInvoice(id: string, formData: FormData) {
 }
 
 export async function deleteInvoice(id: string) {
-    await sql`
-        DELETE FROM invoices
-        WHERE id = ${id}
-    `;
+    try {
+        await sql`
+            DELETE FROM invoices
+            WHERE id = ${id}
+        `;
+    } catch (error) {   
+        throw new Error(`Failed to delete invoice. (${error})`);
+    }
 
     // Revalidate the path to update the cache
     revalidatePath('/dashboard/invoices');
